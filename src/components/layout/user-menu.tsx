@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {
+  BookOpen,
   ChevronDown,
   ClipboardList,
   LayoutDashboard,
@@ -87,6 +88,12 @@ export function AuthNavDesktop() {
         </DropdownMenuItem>
         {user.role === 'student' ? (
           <>
+            <DropdownMenuItem asChild>
+              <Link href="/subjects">
+                <BookOpen className="size-4" aria-hidden />
+                Subjects
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/exams">
                 <ClipboardList className="size-4" aria-hidden />
@@ -178,12 +185,20 @@ export function AuthNavMobile({ onNavigate }: { onNavigate: () => void }) {
           </Link>
         </Button>
         {user.role === 'student' ? (
-          <Button variant="outline" asChild className="h-10 rounded-xl">
-            <Link href="/profile" onClick={onNavigate}>
-              <UserRound className="size-4" aria-hidden />
-              Profile &amp; settings
-            </Link>
-          </Button>
+          <>
+            <Button variant="outline" asChild className="h-10 rounded-xl">
+              <Link href="/subjects" onClick={onNavigate}>
+                <BookOpen className="size-4" aria-hidden />
+                Subjects
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="h-10 rounded-xl">
+              <Link href="/profile" onClick={onNavigate}>
+                <UserRound className="size-4" aria-hidden />
+                Profile &amp; settings
+              </Link>
+            </Button>
+          </>
         ) : null}
         <Button
           variant="outline"

@@ -8,10 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRequireAuth } from '@/features/auth/hooks';
 import { formatDate, formatMinutes, formatPercent } from '@/lib/format';
-import { EXAM_OUTCOME_META, type StatusTone } from '@/lib/labels';
+import { EXAM_OUTCOME_META, subjectVisual, type StatusTone } from '@/lib/labels';
 import { cn } from '@/lib/utils';
-import type { ResultSummary } from '@/types/entities';
-import { usePublishedExams, useRecentResults, useStudentDashboard } from '../hooks';
+import type { ResultSummary, Subject } from '@/types/entities';
+import {
+  usePublishedExams,
+  useRecentResults,
+  useStudentDashboard,
+  useSubjects,
+} from '../hooks';
 import { ScoreTrendChart, type TrendPoint } from './score-trend-chart';
 
 const GLASS =
@@ -52,6 +57,64 @@ function StatTile({ label, value, hint }: { label: string; value: string; hint?:
   );
 }
 
+interface SubjectResultRow {
+  subject: Subject;
+  attempts: number;
+  average: number | null;
+  best: number | null;
+}
+
+/**
+ * One row of the subject-results mini chart. Bar length encodes the average
+ * score (single hue — magnitude, not identity); the subject is identified by
+ * its label and the app-wide subject dot, never by bar color.
+ */
+function SubjectResultBar({ row }: { row: SubjectResultRow }) {
+  const visual = subjectVisual(row.subject.code);
+  const attempted = row.attempts > 0;
+  return (
+    <li>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="flex min-w-0 items-center gap-2 text-sm font-medium text-foreground">
+          <span
+            className="size-2 shrink-0 rounded-full"
+            style={{ backgroundColor: visual.color }}
+            aria-hidden
+          />
+          <span className="truncate">{row.subject.name}</span>
+        </p>
+        <p className="shrink-0 text-xs text-slate-500 tabular-nums">
+          {attempted ? (
+            <>
+              <span className="text-sm font-semibold text-foreground">{row.average}%</span>
+              {' avg · best '}
+              {row.best}% · {row.attempts} attempt{row.attempts === 1 ? '' : 's'}
+            </>
+          ) : (
+            'No attempts yet'
+          )}
+        </p>
+      </div>
+      <div
+        className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200/70"
+        role="img"
+        aria-label={
+          attempted
+            ? `${row.subject.name}: average ${row.average}% across ${row.attempts} attempts`
+            : `${row.subject.name}: no attempts yet`
+        }
+      >
+        {attempted ? (
+          <div
+            className="h-full rounded-full bg-blue-600 transition-[width] duration-500"
+            style={{ width: `${Math.max(1.5, Math.min(100, row.average ?? 0))}%` }}
+          />
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
 function OutcomeChip({ result }: { result: ResultSummary }) {
   const meta = EXAM_OUTCOME_META[result.examResult] ?? EXAM_OUTCOME_META.pending;
   return (
@@ -72,10 +135,14 @@ export function DashboardView() {
   const dashboardQuery = useStudentDashboard(authed);
   const resultsQuery = useRecentResults(authed);
   const examsQuery = usePublishedExams(authed);
+  const subjectsQuery = useSubjects(authed);
 
   const stats = dashboardQuery.data;
-  const results = resultsQuery.data?.items ?? [];
+  const results = resultsQuery.data ?? [];
   const exams = (examsQuery.data?.items ?? []).filter((exam) => exam.status === 'published');
+  const subjects = (subjectsQuery.data?.items ?? []).filter(
+    (subject) => subject.status === 'active',
+  );
 
   const sortedAsc = [...results].sort(
     (a, b) =>
@@ -85,7 +152,24 @@ export function DashboardView() {
     attempt: index + 1,
     percentage: Math.round(result.percentage * 10) / 10,
     examName: result.examName,
+    score: result.score,
+    outcome: result.examResult,
+    submittedAt: result.submittedAt,
   }));
+
+  const subjectByExam = new Map(exams.map((exam) => [exam.id, exam.subjectId]));
+  const subjectRows: SubjectResultRow[] = subjects
+    .map((subject) => {
+      const own = results.filter((result) => subjectByExam.get(result.examId) === subject.id);
+      const average =
+        own.length > 0
+          ? Math.round((own.reduce((sum, r) => sum + r.percentage, 0) / own.length) * 10) / 10
+          : null;
+      const best =
+        own.length > 0 ? Math.round(Math.max(...own.map((r) => r.percentage)) * 10) / 10 : null;
+      return { subject, attempts: own.length, average, best };
+    })
+    .sort((a, b) => (b.average ?? -1) - (a.average ?? -1));
 
   const attemptedExamIds = new Set(results.map((result) => result.examId));
   const pendingExams = exams.filter((exam) => !attemptedExamIds.has(exam.id));
@@ -197,6 +281,24 @@ export function DashboardView() {
                         <Link href="/exams">Schedule your first exam</Link>
                       </Button>
                     </div>
+                  )}
+                </section>
+
+                <section className={`${GLASS} p-6`}>
+                  <div className="flex items-baseline justify-between">
+                    <h2 className="text-base font-semibold text-foreground">Subject results</h2>
+                    <p className="text-xs text-slate-500">Average score per subject</p>
+                  </div>
+                  {results.length > 0 ? (
+                    <ul className="mt-4 space-y-3.5">
+                      {subjectRows.map((row) => (
+                        <SubjectResultBar key={row.subject.id} row={row} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-3 text-sm text-slate-500">
+                      Attempt an exam to see your subject-wise performance.
+                    </p>
                   )}
                 </section>
 

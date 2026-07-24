@@ -54,7 +54,7 @@ export const CLIENT_EXAM_EVENT_TYPES = [
 ] as const;
 export type ClientExamEventType = (typeof CLIENT_EXAM_EVENT_TYPES)[number];
 
-export const UPLOAD_PURPOSES = ['profile', 'question', 'subject', 'import'] as const;
+export const UPLOAD_PURPOSES = ['profile', 'question', 'subject', 'track', 'import'] as const;
 export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];
 
 // ─────────────────────────────── Auth ───────────────────────────────
@@ -89,13 +89,59 @@ export interface User {
   isEmailVerified: boolean;
   permissions: string[];
   displayName?: string;
+  /** Student profile name — present for students in admin lists. */
+  fullName?: string;
   profilePhotoUrl?: string;
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+/** `GET /users/:id/student-detail` (admin). */
+export interface StudentProfileSummary {
+  fullName: string;
+  phoneNumber?: string;
+  age?: number;
+  academicClass?: string;
+  schoolName?: string;
+  purpose?: string;
+  profilePhotoUrl?: string;
+}
+
+export interface StudentExamStats {
+  totalAttended: number;
+  passed: number;
+  failed: number;
+  averagePercentage: number;
+  bestPercentage: number;
+  bestRank: number | null;
+}
+
+export interface StudentDetail {
+  account: User;
+  profile: StudentProfileSummary | null;
+  examStats: StudentExamStats;
+  attempts: ResultSummary[];
+}
+
 // ─────────────────────────── Catalog content ───────────────────────────
+
+export interface PreparationTrack {
+  id: string;
+  slug: string;
+  title: string;
+  shortTitle: string;
+  eyebrow?: string;
+  description?: string;
+  focus?: string;
+  icon?: string;
+  color?: string;
+  tint?: string;
+  order: number;
+  status: EntityStatus;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Subject {
   id: string;
@@ -103,6 +149,7 @@ export interface Subject {
   code: string;
   description?: string;
   icon?: string;
+  preparationTrackIds: string[];
   status: EntityStatus;
   createdAt: string;
   updatedAt: string;
@@ -114,6 +161,7 @@ export interface Topic {
   parentTopicId?: string | null;
   topicName: string;
   description?: string;
+  preparationTrackIds: string[];
   order: number;
   status: EntityStatus;
   createdAt: string;
@@ -122,6 +170,25 @@ export interface Topic {
 
 export interface TopicTreeNode extends Topic {
   children: TopicTreeNode[];
+}
+
+export interface TopicResource {
+  id: string;
+  topicId: string;
+  title: string;
+  originalName: string;
+  mimeType: 'application/pdf';
+  format: 'pdf';
+  bytes: number;
+  order: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/** Full topic content. Topic trees intentionally return summaries only. */
+export interface TopicDetail extends Topic {
+  studyContent?: string;
+  resources: TopicResource[];
 }
 
 export interface MediaAsset {
@@ -388,6 +455,35 @@ export interface TopicProgressEntry {
 }
 
 /** `GET /admin/dashboard`. */
+export interface AdminAttemptsTrendPoint {
+  /** UTC day, YYYY-MM-DD. */
+  date: string;
+  attempts: number;
+}
+
+export interface AdminTopStudent {
+  studentId: string;
+  fullName: string;
+  studentCode?: string;
+  examsAttended: number;
+  averagePercentage: number;
+  bestPercentage: number;
+}
+
+export interface AdminExamPopularity {
+  examId: string;
+  examName: string;
+  examCode: string;
+  attempts: number;
+  averagePercentage: number;
+}
+
+export interface AdminSubjectPopularity {
+  subjectId: string;
+  subjectName: string;
+  attempts: number;
+}
+
 export interface AdminDashboardStats {
   totalStudents: number;
   activeStudents: number;
@@ -397,8 +493,65 @@ export interface AdminDashboardStats {
   totalQuestions: number;
   todaysExams: number;
   todaysRegistrations: number;
+  /** Average percentage across all completed attempts. */
   averageScore: number;
   failedStudents: number;
+  attemptsTrend: AdminAttemptsTrendPoint[];
+  passedAttempts: number;
+  failedAttempts: number;
+  topStudents: AdminTopStudent[];
+  examPopularity: AdminExamPopularity[];
+  subjectPopularity: AdminSubjectPopularity[];
+}
+
+/** `GET /admin/dashboard/analytics`. */
+export interface AdminRegistrationPoint {
+  date: string;
+  count: number;
+}
+
+export interface AdminScoreBucket {
+  bucket: string;
+  count: number;
+}
+
+export interface AdminSubjectPerformance {
+  subjectId: string;
+  subjectName: string;
+  attempts: number;
+  averagePercentage: number;
+  passRate: number;
+}
+
+export interface AdminTopicAccuracy {
+  topicId: string;
+  topicName: string;
+  subjectName: string;
+  attempted: number;
+  accuracy: number;
+}
+
+export interface AdminHourActivity {
+  /** 0–23, IST. */
+  hour: number;
+  attempts: number;
+}
+
+export interface AdminPeriodSummary {
+  attempts: number;
+  averagePercentage: number;
+}
+
+export interface AdminAnalytics {
+  registrations30d: AdminRegistrationPoint[];
+  scoreDistribution: AdminScoreBucket[];
+  subjectPerformance: AdminSubjectPerformance[];
+  weakestTopics: AdminTopicAccuracy[];
+  attemptsByHour: AdminHourActivity[];
+  last7Days: AdminPeriodSummary;
+  previous7Days: AdminPeriodSummary;
+  last30Days: AdminPeriodSummary;
+  previous30Days: AdminPeriodSummary;
 }
 
 // ─────────────────────────────── System ───────────────────────────────

@@ -10,7 +10,6 @@ import { ROLE_COOKIE_NAME } from '@/lib/role-cookie';
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
 const STUDENT_PREFIXES = [
   '/dashboard',
-  '/subjects',
   '/exams',
   '/exam',
   '/results',
@@ -60,8 +59,6 @@ export const config = {
     '/reset-password',
     '/dashboard',
     '/dashboard/:path*',
-    '/subjects',
-    '/subjects/:path*',
     '/exams',
     '/exams/:path*',
     '/exam',

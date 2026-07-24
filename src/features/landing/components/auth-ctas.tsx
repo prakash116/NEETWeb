@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
 
 function dashboardHrefFor(role: string): string {
@@ -11,13 +12,19 @@ function dashboardHrefFor(role: string): string {
 }
 
 /** Hero call-to-action row — swaps to "Go to your dashboard" once logged in. */
-export function HeroCtas() {
+export function HeroCtas({ align = 'center' }: { align?: 'center' | 'start' }) {
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
+  const alignment = align === 'start' ? 'sm:justify-start' : 'sm:justify-center';
 
   if (status === 'booting') {
     return (
-      <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+      <div
+        className={cn(
+          'mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row',
+          alignment,
+        )}
+      >
         <Skeleton className="h-11 w-full rounded-xl sm:w-48" />
         <Skeleton className="h-11 w-full rounded-xl sm:w-44" />
       </div>
@@ -26,7 +33,7 @@ export function HeroCtas() {
 
   if (status === 'authenticated' && user) {
     return (
-      <div className="mt-8 flex justify-center">
+      <div className={cn('mt-8 flex justify-center', alignment)}>
         <Button size="lg" asChild className="h-11 rounded-xl px-6 text-[0.9375rem]">
           <Link href={dashboardHrefFor(user.role)}>
             Go to your dashboard
@@ -38,7 +45,12 @@ export function HeroCtas() {
   }
 
   return (
-    <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+    <div
+      className={cn(
+        'mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row',
+        alignment,
+      )}
+    >
       <Button size="lg" asChild className="h-11 w-full rounded-xl px-6 text-[0.9375rem] sm:w-auto">
         <Link href="/register">
           Start preparing free

@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import {
   BarChart3,
+  BookOpenText,
   ClipboardList,
   CreditCard,
   FileQuestion,
   GraduationCap,
+  Layers3,
   LayoutDashboard,
   Library,
   LogOut,
@@ -40,16 +42,18 @@ const GROUPS: AdminNavGroup[] = [
     title: 'Overview',
     items: [
       { label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
-      { label: 'Analytics', icon: BarChart3, soon: true },
+      { label: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
     ],
   },
   {
     title: 'Manage',
     items: [
+      { label: 'Preparation paths', icon: Layers3, href: '/admin/tracks' },
       { label: 'Subjects & topics', icon: Library, href: '/admin/subjects' },
+      { label: 'Study materials', icon: BookOpenText, href: '/admin/materials' },
       { label: 'Questions', icon: FileQuestion, href: '/admin/questions' },
-      { label: 'Exams', icon: ClipboardList, soon: true },
-      { label: 'Students', icon: Users, soon: true },
+      { label: 'Exams', icon: ClipboardList, href: '/admin/exams' },
+      { label: 'Students', icon: Users, href: '/admin/students' },
     ],
   },
   {

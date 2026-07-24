@@ -15,8 +15,8 @@ export function useStudentDashboard(enabled: boolean) {
 
 export function useRecentResults(enabled: boolean) {
   return useQuery({
-    queryKey: queryKeys.results.list({ page: 1, limit: 100 }),
-    queryFn: () => listResults({ page: 1, limit: 100 }),
+    queryKey: queryKeys.results.list(),
+    queryFn: listResults,
     enabled,
   });
 }

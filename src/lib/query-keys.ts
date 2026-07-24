@@ -6,6 +6,28 @@
 type Params = Record<string, unknown>;
 
 export const queryKeys = {
+  preparationTracks: {
+    root: ['preparation-tracks'] as const,
+    list: ['preparation-tracks', 'list'] as const,
+  },
+  publicCatalog: {
+    root: ['public-catalog'] as const,
+    tracks: ['public-catalog', 'tracks'] as const,
+    subjects: (trackSlug: string, params?: Params) =>
+      ['public-catalog', 'tracks', trackSlug, 'subjects', params ?? {}] as const,
+    topics: (trackSlug: string, subjectId: string) =>
+      ['public-catalog', 'tracks', trackSlug, 'subjects', subjectId, 'topics'] as const,
+    topicDetail: (trackSlug: string, subjectId: string, topicId: string) =>
+      [
+        'public-catalog',
+        'tracks',
+        trackSlug,
+        'subjects',
+        subjectId,
+        'topics',
+        topicId,
+      ] as const,
+  },
   subjects: {
     root: ['subjects'] as const,
     list: (params?: Params) => ['subjects', 'list', params ?? {}] as const,
@@ -15,6 +37,7 @@ export const queryKeys = {
     root: ['topics'] as const,
     list: (params?: Params) => ['topics', 'list', params ?? {}] as const,
     tree: (subjectId: string) => ['topics', 'tree', subjectId] as const,
+    stats: (subjectId: string) => ['topics', 'stats', subjectId] as const,
     detail: (id: string) => ['topics', 'detail', id] as const,
   },
   questions: {
@@ -59,6 +82,7 @@ export const queryKeys = {
     student: ['dashboard', 'student'] as const,
     studentTopics: ['dashboard', 'student', 'topics'] as const,
     admin: ['dashboard', 'admin'] as const,
+    adminAnalytics: ['dashboard', 'admin', 'analytics'] as const,
   },
   settings: {
     root: ['settings'] as const,

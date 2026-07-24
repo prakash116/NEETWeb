@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 
 const LINKS = [
   { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+  { key: 'subjects', label: 'Subjects', href: '/subjects' },
   { key: 'exams', label: 'Exams', href: '/exams' },
   { key: 'community', label: 'Community', href: '/community' },
 ] as const;
