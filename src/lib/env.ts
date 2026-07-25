@@ -5,7 +5,9 @@ import { z } from 'zod';
  * time, so each one must be referenced explicitly (no dynamic lookup).
  */
 const publicEnvSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.url().default('http://localhost:4000/api/v1'),
+  NEXT_PUBLIC_API_URL: z
+    .url()
+    .default('https://neetexambackend-production.up.railway.app/api/v1'),
   NEXT_PUBLIC_FEATURE_PASSWORD_RESET: z.enum(['true', 'false']).default('false'),
 });
 
